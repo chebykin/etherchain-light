@@ -17,16 +17,28 @@ router.get('/', function(req, res, next) {
         callback(err, result);
       });
     }, function(lastBlock, callback) {
+      let to = parseInt(req.query.to);
+      if (to > 0) {
+        lastBlock = {number: to}
+      }
+
       var blocks = [];
       
-      var blockCount = 10;
+      var blockCount = 30;
+
+      let count = parseInt(req.query.count);
+      if (count > 0) {
+        blockCount = count;
+      }
       
       if (lastBlock.number - blockCount < 0) {
         blockCount = lastBlock.number + 1;
       }
+
+      console.log('latestBlock', lastBlock.number, 'count', blockCount);
       
       async.times(blockCount, function(n, next) {
-        web3.eth.getBlock(lastBlock.number - n, true, function(err, block) {
+        web3.eth.getBlock(lastBlock.number - n, false, function(err, block) {
           next(err, block);
         });
       }, function(err, blocks) {
@@ -39,14 +51,14 @@ router.get('/', function(req, res, next) {
     }
     
     var txs = [];
-    blocks.forEach(function(block) {
-      block.transactions.forEach(function(tx) {
-        if (txs.length === 10) {
-          return;
-        }
-        txs.push(tx);
-      });
-    });
+    // blocks.forEach(function(block) {
+    //   block.transactions.forEach(function(tx) {
+    //     if (txs.length === 10) {
+    //       return;
+    //     }
+    //     txs.push(tx);
+    //   });
+    // });
     res.render('index', { blocks: blocks, txs: txs });
   });
   
